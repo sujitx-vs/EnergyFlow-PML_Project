@@ -1,0 +1,75 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf,plot_pacf
+
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+data = pd.read_csv('Data/cleaned_data.csv')
+
+series = data['Global_active_power']
+
+split_index = int(series.shape[0]*.8)
+
+series_train = series.iloc[:split_index]
+series_test = series.iloc[split_index:]
+# since we are using time series model sarima its 
+# required to check the stationarity of the data .
+# to check that we use adfuller from statsmodels.
+# it is Augmented Dickey-Fuller.
+# in this there will be hypothesis testing going behind the scene
+# and p value will be returend , and according to that p value 
+# we can come to a conclusion that its stationary or not,
+# if p value > 0.05 -> Non_ stationary(fail to reject Null hypothesis)
+# if p value <= 0.05 -> Stationary (Rejected Null Hypothesis)
+# result  = adfuller(series_train,autolag='AIC')
+# p_value = result[1]
+
+# print(p_value) # here p value is 5.566710717592664e-24, which is < 0.05
+# The ADF test suggests that the series is stationary.
+# so no need of differencing.
+
+# no we want to find out the model parameters.
+# for that we use ACF(Auto Correlation Function) -> visualize correlations between lags.
+# and also we use PACF(Partial Auto Correlation Function) -
+# to visualize partial correlations between lags.
+
+# plot_acf(series_train)
+plot_acf(series_train, lags=45)
+plt.show()
+# plot_pacf(series_train)
+plot_pacf(series_train, lags=45, method='ywm')
+plt.show()
+# from these graphs we found out:
+
+# d = 0 - Your ADF test p-value was practically 0,
+# meaning the raw training series is already perfectly stationary. No differencing needed.
+
+# p = 2 (Autoregressive order) -in PACF graph, there is a massive positive spike at lag 1,
+#  a sharp negative spike at lag 2, and then at lags 3 and 4, the bars suddenly drop off.
+
+# q = 2 (Moving Average order) - in ACF graph, There are prominent spikes at lags 1 and 2,
+#  which then experience a significant drop before hit a flat pattern around lags 3 and 4.
+
+# s = 12 : In the ACF plot, massive spikes repeatedly echo at lag 12,
+#  lag 24, and lag 36.
+# D = 0: The stationarity was achieved easily without any seasonal differencing.
+# P = 1 (Seasonal AR): In the PACF plot, look specifically at the seasonal intervals.
+#  There is a distinct, significant positive spike sitting right at lag 11/12. 
+# At lag 24, that seasonal pattern completely dies off into the blue insignificance zone. 
+# A sharp cutoff at the first seasonal interval means P=1.
+# Q = 1 (Seasonal MA): In the ACF plot,
+#  the seasonal spikes at 12, 24, and 36 stay highly significant and decay very gradually. 
+# This tailing-off pattern at seasonal multiples is the classic signature of a seasonal moving average component.
+
+model = SARIMAX(
+    series_train,
+    order=(2, 0, 2),
+    seasonal_order=(1, 0, 1, 12),
+    enforce_stationarity=False,
+    enforce_invertibility=False
+)
+
+# Fit the model
+model_fit = model.fit(disp=False)
+print(model_fit.summary())
