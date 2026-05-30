@@ -110,6 +110,7 @@
 import streamlit as st
 import pickle as pk
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 st.set_page_config(page_title="Power Consumption Predictor", layout="wide")
 
@@ -282,13 +283,33 @@ if st.button("Generate Prediction 🚀", type="primary"):
         st.error(f"Model file not found inside the 'models/' directory for {model}!")
 
     if loaded_model is not None:
-        
-        pred = loaded_model.predict(input_df)
-        
-        # 5. Display the prediction cleanly using st.metric
-        predicted_value = round(float(pred[0]), 4)
-        st.metric(label="Predicted Global Active Power", value=f"{predicted_value} kW")
-    
+        try:
+            if model == "Sarimax":
+                # Divert timeline data into exogenous parameters for 1-step forecast evaluation
+                pred = loaded_model.predict(steps=1, exog=input_df)
+            elif model == "Linear Regression":
+                with open("models/LinearScaler.pkl","rb") as f:
+                    scaler = pk.load(f)
+                    input_df = scaler.transform(input_df)           
+                    pred = loaded_model.predict(input_df)
+                
+            else:
+                # Standard array routing for SKLearn, Linear Reg, and XGBoost
+                pred = loaded_model.predict(input_df)
+            
+            # Extract evaluation outputs dynamically across Series, Lists or Arrays
+            if hasattr(pred, "values"):
+                raw_pred_value = pred.values[0]
+            else:
+                raw_pred_value = pred[0]
+                
+            predicted_value = round(float(raw_pred_value), 4)
+            
+            # Display final dynamic output metric card
+            st.metric(label="Predicted Global Active Power", value=f"{predicted_value} kW")
+            
+        except Exception as e:
+            st.error(f"Prediction Error running model context [{model}]: {e}")
 
     
     # st.write("Processed inputs ready for inference:", features_dict)
