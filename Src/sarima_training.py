@@ -4,6 +4,7 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf,plot_pacf
 from sklearn.metrics import root_mean_squared_error,r2_score,mean_squared_error
 
+from pmdarima import auto_arima
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 data = pd.read_csv('Data/cleaned_data.csv')
@@ -13,7 +14,8 @@ series = data['Global_active_power']
 split_index = int(series.shape[0]*.8)
 
 series_train = series.iloc[:split_index]
-series_test = series.iloc[split_index:]
+series_test = series.iloc[split_index:(split_index+48)]
+
 # since we are using time series model sarima its 
 # required to check the stationarity of the data .
 # to check that we use adfuller from statsmodels.
@@ -63,22 +65,106 @@ series_test = series.iloc[split_index:]
 #  the seasonal spikes at 12, 24, and 36 stay highly significant and decay very gradually. 
 # This tailing-off pattern at seasonal multiples is the classic signature of a seasonal moving average component.
 
-model = SARIMAX(
-    series_train,
-    order=(2, 0, 2),
-    seasonal_order=(1, 0, 1, 12),
-    enforce_stationarity=False,
-    enforce_invertibility=False
+# model = SARIMAX(
+#     series_train,
+#     order=(2, 0, 2),
+#     seasonal_order=(1, 0, 1, 12),
+#     enforce_stationarity=False,
+#     enforce_invertibility=False
+# )
+
+# # Fit the model
+# results = model.fit()
+# test_steps = len(series_test)
+
+# forecast = results.get_forecast(steps=test_steps) 
+# pred = forecast.predicted_mean
+# pred.index = series_test.index
+# # metrices 
+
+# rmse = root_mean_squared_error(series_test,pred)
+# r2 = r2_score(series_test,pred)
+# mse = mean_squared_error(series_test,pred)
+
+# print("RMSE :",rmse)
+# print("MSE :",mse)
+# print("R2 Score :",r2)
+
+
+# the model is trained and evaluvated but the performance way so low
+# RMSE : 0.6148494798922783
+# MSE : 0.37803988292380514
+# R2 Score : 0.1451347171798577
+# the model struggled to capture the complex consumption patterns
+# effectively and produced significantly lower performance compared to XGBoost.
+
+#checks
+# print(series_train.shape)
+# print(series_test.shape)
+
+
+auto_model = auto_arima(
+    series_train, 
+    start_p=0, start_q=0,
+    max_p=3, max_q=3,       # Maximum non-seasonal orders to test
+    d=None,                    # Force d=0 because your data is stationary/d=None for auto_arima to find it automatically
+    
+    seasonal=True,          # Enable seasonal search
+    m=12,                   # Your data's seasonal cycle length 
+    start_P=0, start_Q=0,
+    max_P=2, max_Q=2,       # Maximum seasonal orders to test
+    D=None,                    # Force D=0 since seasonal differencing isn't needed/D=None for auto_arima to find it automatically.
+    
+    sarimax_kwargs={'low_memory':True},
+    stationary=True,        # Explicitly tells the algorithm data is stationary
+    stepwise=True,          # Uses a smart search algorithm (much faster than checking everything)
+    trace=True,             # Prints out progress of models being tested
+    error_action='ignore',  # Skips combinations that crash mathematically
+    suppress_warnings=True
 )
 
-# Fit the model
-results = model.fit()
-test_steps = len(series_test)
+print("Best model")
+print(auto_model.summary())
 
-forecast = results.get_forecast(steps=test_steps) 
-pred = forecast.predicted_mean
-pred.index = series_test.index
-# metrices 
+
+forecast = auto_model.predict_in_sample()
+
+rmse = root_mean_squared_error(
+    series_train,
+    forecast
+)
+
+r2 = r2_score(
+    series_train,
+    forecast
+)
+
+print("r2 training",r2)
+print("Rmse Training",rmse)
+
+
+result = auto_model.predict(n_periods = len(series_test))
+
+pred = pd.Series(result,index=series_test.index)
+
+#checks
+# print(series_test.head())
+# print(pred.head())
+
+# print(series_test.shape)
+# print(pred.shape)
+
+# print(series_test.index.equals(pred.index))
+
+# plt.figure(figsize=(15,5))
+# plt.plot(series_test[:500], label="Actual")
+# plt.plot(pred[:500], label="Forecast")
+# plt.legend()
+# plt.show()
+
+# print(pred.describe())
+# print(series_test.describe())
+# ###########################
 
 rmse = root_mean_squared_error(series_test,pred)
 r2 = r2_score(series_test,pred)
@@ -89,9 +175,57 @@ print("MSE :",mse)
 print("R2 Score :",r2)
 
 
-# the model is trained and evaluvated but the performance way so low
-# RMSE : 0.6148494798922783
-# MSE : 0.37803988292380514
-# R2 Score : 0.1451347171798577
-# the model struggled to capture the complex consumption patterns
-# effectively and produced significantly lower performance compared to XGBoost.
+# Classical statistical time-series models were not suitable
+# for this dataset. Machine Learning models such as XGBoost
+# significantly outperformed SARIMA, achieving much higher
+# predictive accuracy and better generalization performance.
+
+# Multiple SARIMA and Auto-ARIMA configurations were tested.
+# The best model selected by Auto-ARIMA was But still:
+#
+#     ARIMA(2,0,0)(2,0,0)[12]
+#
+# Training Performance:
+#     R² Score  : 0.3340
+#     RMSE      : 0.6915
+#
+# Testing Performance:
+#     R² Score  : -0.0147
+#     RMSE      : 0.8979
+#     MSE       : 0.8061
+#
+
+# So This model is not saved. 
+
+# Conclusion:
+#
+# Classical statistical time-series forecasting models did not perform well
+# on this dataset. Multiple SARIMA and Auto-ARIMA configurations were tested,
+# including seasonal and non-seasonal variants, but the models struggled to
+# capture the underlying power consumption patterns effectively.
+#
+# The best model selected by Auto-ARIMA was:
+#
+#     ARIMA(2,0,0)(2,0,0)[12]
+#
+# Training Performance:
+#     R² Score : 0.3340
+#     RMSE     : 0.6915
+#
+# Testing Performance:
+#     R² Score : -0.0147
+#     RMSE     : 0.8979
+#     MSE      : 0.8061
+#
+# The low training R² and negative testing R² indicate that the model was
+# unable to explain the variance in the data and performed worse than a
+# simple mean-value baseline on the test set.
+#
+# This suggests that the electricity consumption data contains complex
+# non-linear relationships that are not captured effectively by traditional
+# ARIMA-based models. In comparison, machine learning models such as
+# XGBoost achieved significantly better performance and demonstrated
+# stronger generalization capability.
+#
+# Therefore, the SARIMA/Auto-ARIMA model was not retained for deployment
+# or model saving within this project.
