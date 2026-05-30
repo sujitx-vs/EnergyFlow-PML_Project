@@ -121,6 +121,7 @@ These results demonstrate that household power consumption is strongly influence
 
 ## 🛠 Technologies Used
 
+
 * Python
 * Pandas
 * NumPy
@@ -129,6 +130,7 @@ These results demonstrate that household power consumption is strongly influence
 * Statsmodels
 * Pmdarima
 * Matplotlib
+* Streamlit
 
 ---
 
@@ -137,10 +139,11 @@ These results demonstrate that household power consumption is strongly influence
 EnergyFlow/
 │
 ├── Data/
+│   ├── Raw_Electricity_Data.csv
 │   └── cleaned_data.csv
 │
-├── models/
-│   └── (excluded from repository)
+├── Notebooks/
+│   └── DataProcessing&EDA.ipynb
 │
 ├── Src/
 │   ├── linearRegression_training.py
@@ -149,8 +152,12 @@ EnergyFlow/
 │   ├── sarimax_training.py
 │   └── xgboost_training.py
 │
-├── README.md
+├── models/
+│   └── (excluded from repository)
+│
+├── app.py
 ├── requirements.txt
+├── README.md
 └── .gitignore
 
 > Note: Trained model files are excluded from version control and are therefore not included in this repository.
@@ -159,14 +166,36 @@ EnergyFlow/
 
 ## 🚀 Future Improvements
 
-* Advanced SARIMAX hyperparameter tuning
-* Prophet-based forecasting
-* LSTM and GRU deep learning models
-* Lag-feature engineering
-* Multi-step forecasting experiments
-* Real-time energy consumption prediction
+- Deploy the Streamlit application to Streamlit Cloud.
+- Integrate real-time weather APIs for live predictions.
+- Add prediction history and visualization dashboards.
+- Implement feature importance analysis using SHAP values.
+- Explore advanced forecasting models such as Prophet.
+- Experiment with deep learning architectures (LSTM, GRU, Transformer).
+- Build multi-step energy consumption forecasting pipelines.
+- Develop a REST API version using FastAPI or Flask.
 
 ---
+## ▶️ Running the Application
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the Streamlit application:
+
+```bash
+streamlit run app.py
+```
+if this commad is not working try :
+
+```bash
+python -m streamlit run app.py
+```
+
+Open the local URL displayed in the terminal to access the application.
 
 ## 📌 Conclusion
 
