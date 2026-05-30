@@ -10,7 +10,7 @@ data = pd.read_csv('Data/cleaned_data.csv')
 X = data.drop('Global_active_power',axis=1)
 Y = data['Global_active_power']
 
-X.drop('minutes',axis=1,inplace=True)
+# X.drop('minutes',axis=1,inplace=True)
 split_index = int(X.shape[0]*.8)
 
 X_train = X.iloc[:split_index]
