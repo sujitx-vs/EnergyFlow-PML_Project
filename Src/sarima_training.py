@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf,plot_pacf
+from sklearn.metrics import root_mean_squared_error,r2_score,mean_squared_error
 
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
@@ -35,15 +36,15 @@ series_test = series.iloc[split_index:]
 # to visualize partial correlations between lags.
 
 # plot_acf(series_train)
-plot_acf(series_train, lags=45)
-plt.show()
+# plot_acf(series_train, lags=45)
+# plt.show()
 # plot_pacf(series_train)
-plot_pacf(series_train, lags=45, method='ywm')
-plt.show()
+# plot_pacf(series_train, lags=45, method='ywm')
+# plt.show()
 # from these graphs we found out:
 
 # d = 0 - Your ADF test p-value was practically 0,
-# meaning the raw training series is already perfectly stationary. No differencing needed.
+# meaning the raw training series is already stationary. No differencing needed.
 
 # p = 2 (Autoregressive order) -in PACF graph, there is a massive positive spike at lag 1,
 #  a sharp negative spike at lag 2, and then at lags 3 and 4, the bars suddenly drop off.
@@ -51,7 +52,7 @@ plt.show()
 # q = 2 (Moving Average order) - in ACF graph, There are prominent spikes at lags 1 and 2,
 #  which then experience a significant drop before hit a flat pattern around lags 3 and 4.
 
-# s = 12 : In the ACF plot, massive spikes repeatedly echo at lag 12,
+# s = 24 : In the ACF plot, massive spikes repeatedly echo at lag 12,
 #  lag 24, and lag 36.
 # D = 0: The stationarity was achieved easily without any seasonal differencing.
 # P = 1 (Seasonal AR): In the PACF plot, look specifically at the seasonal intervals.
@@ -71,5 +72,26 @@ model = SARIMAX(
 )
 
 # Fit the model
-model_fit = model.fit(disp=False)
-print(model_fit.summary())
+results = model.fit()
+test_steps = len(series_test)
+
+forecast = results.get_forecast(steps=test_steps) 
+pred = forecast.predicted_mean
+pred.index = series_test.index
+# metrices 
+
+rmse = root_mean_squared_error(series_test,pred)
+r2 = r2_score(series_test,pred)
+mse = mean_squared_error(series_test,pred)
+
+print("RMSE :",rmse)
+print("MSE :",mse)
+print("R2 Score :",r2)
+
+
+# the model is trained and evaluvated but the performance way so low
+# RMSE : 0.6148494798922783
+# MSE : 0.37803988292380514
+# R2 Score : 0.1451347171798577
+# the model struggled to capture the complex consumption patterns
+# effectively and produced significantly lower performance compared to XGBoost.
