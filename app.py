@@ -116,15 +116,14 @@ with col3:
 # --- TIME & DATE SELECTION ---
 st.markdown("---")
 st.subheader("📅 Timestamp Selection")
-time_col1, time_col2, time_col3, time_col4 = st.columns(4)
+time_col1, time_col2, time_col3= st.columns(3)
+
 
 with time_col1:
-    year = st.selectbox("Year", [2026,2027,2028,2029,2030], index=1)
-with time_col2:
     month = st.slider("Month", min_value=1, max_value=12, value=6)
-with time_col3:
+with time_col2:
     day = st.slider("Day", min_value=1, max_value=31, value=15)
-with time_col4:
+with time_col3:
     hour = st.slider("Hour of Day (24h)", min_value=0, max_value=23, value=12)
 
 # --- PREDICTION BUTTON ---
@@ -144,7 +143,7 @@ if st.button("Generate Prediction 🚀", type="primary"):
         "Temperature": temperature,
         "Snowfall": snowfall,
         "Wind": wind,
-        "Year": year,
+        "Year": 2010,
         "hour": hour,
         "month": month,
         "Day": day
