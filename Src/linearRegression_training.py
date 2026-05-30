@@ -2,9 +2,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error,r2_score,root_mean_squared_error
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
-from sklearn.linear_model import RidgeCV
+# from sklearn.linear_model import RidgeCV
 
 import pickle as pk
 
