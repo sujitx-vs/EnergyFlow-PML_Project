@@ -1,238 +1,179 @@
-# ⚡ EnergyFlow - Power Consumption Prediction Using Machine Learning
+# ⚡ EnergyFlow - Household Power Consumption Prediction
 
-## 📌 Project Overview
+## 📖 Project Overview
 
-EnergyFlow is a Machine Learning project focused on predicting **Global Active Power Consumption** using household electricity consumption data.
+EnergyFlow is a machine learning and time-series forecasting project focused on predicting household electricity consumption using historical power usage, weather conditions, and temporal features.
 
-The project includes:
-
-* Data Cleaning
-* Exploratory Data Analysis (EDA)
-* Feature Engineering
-* Model Training
-* Hyperparameter Tuning
-* Model Comparison
-* Model Evaluation
-* Saving Trained Models
-
-The primary goal of this project is to compare multiple machine learning regression models and identify the best-performing model for predicting household power consumption.
-
-A future goal of this project is to build a web application for real-time electricity consumption prediction.
+The project explores both traditional statistical forecasting techniques and modern machine learning algorithms to identify the most effective approach for modeling energy consumption patterns.
 
 ---
 
-# 📂 Project Structure
+## 🎯 Objectives
 
-```bash
-EnergyFlow-PML_Project/
-│
-├── data/
-│   ├── Raw_Electricity_Data.csv
-│   └── cleaned_data.csv
-│
-├── notebooks/
-│   └── DataProcessing&EDA.ipynb
-│
-├── models/
-│
-├── src/
-│   ├── train_xgboost.py
-│   ├── train_randomforest.py
-│   └── train_linearregression.py
-│
-├── README.md
-├── requirements.txt
-└── .gitignore
-```
+* Analyze household electricity consumption behavior.
+* Build predictive models for power consumption forecasting.
+* Compare traditional time-series methods with machine learning approaches.
+* Evaluate model performance using standard regression metrics.
+* Identify the most suitable model for accurate energy consumption prediction.
 
 ---
 
-# 📊 Exploratory Data Analysis (EDA)
+## 📊 Dataset Features
 
-The EDA process included:
+The dataset contains electrical measurements, weather information, and time-based features, including:
 
-* Handling missing values using time-based interpolation
-* Datetime feature extraction
-* Correlation analysis
-* Outlier analysis
-* Multicollinearity analysis using VIF
-* Trend analysis across years, months, and days
+### Electrical Features
 
-### Feature Engineering
+* Global Reactive Power
+* Voltage
+* Sub Metering 1
+* Sub Metering 2
+* Sub Metering 3
 
-Extracted temporal features such as:
+### Weather Features
 
-* Year
-* Month
-* Day
+* Temperature
+* Cloud Cover
+* Wind
+* Precipitation
+* Snowfall
+
+### Time Features
+
 * Hour
-* Minute
+* Day
+* Month
+* Year
 
-The original `Date` and `Time` columns were removed after extracting relevant numerical features.
+### Target Variable
 
----
-
-# ⚙️ Data Preprocessing
-
-### Missing Value Handling
-
-Missing values were handled using:
-
-* Time-based interpolation
-
-This method was selected because the dataset represents sequential electricity consumption data where nearby timestamps are highly related.
-
-### Feature Scaling
-
-Feature scaling was applied only for linear models such as:
-
-* Linear Regression
-* Ridge Regression
-
-Tree-based models like:
-
-* Random Forest
-* XGBoost
-
-do not require feature scaling.
+* Global Active Power
 
 ---
 
-# 🤖 Machine Learning Models Implemented
+## 🤖 Models Implemented
 
-The following regression models were implemented and evaluated:
+### Machine Learning Models
 
 * Linear Regression
 * Ridge Regression
 * Random Forest Regressor
 * XGBoost Regressor
 
----
+### Time Series Models
 
-# 📈 Model Performance Comparison
-
-| Model                   | Train RMSE | Test RMSE | Train R² Score | Test R² Score | Observation                                   |
-| ----------------------- | ---------- | --------- | -------------- | ------------- | --------------------------------------------- |
-| Linear Regression       | 0.3839     | 0.3859    | 0.7792         | 0.7704        | Stable performance but underfitting           |
-| Ridge Regression        | 0.3839     | 0.3859    | 0.7792         | 0.7704        | Very similar performance to Linear Regression |
-| Random Forest Regressor | 0.1148     | 0.3107    | 0.9802         | 0.8511        | Strong overfitting observed                   |
-| XGBoost Regressor       | 0.2355     | 0.2742    | 0.9169         | 0.8840        | Best generalization performance               |
+* SARIMA
+* SARIMAX (with exogenous variables)
 
 ---
 
-# 🏆 Best Performing Model
+## 📈 Model Performance
 
-After comparing multiple regression models:
-
-* XGBoost achieved the best balance between training and testing performance.
-* Random Forest achieved extremely high training accuracy but showed stronger overfitting.
-* Linear models generalized consistently but underperformed due to the non-linear nature of the dataset.
-
-Final selected model:
-
-```python
-XGBRegressor(
-    n_estimators=800,
-    max_depth=3,
-    learning_rate=0.1
-)
-```
-
-### Final XGBoost Performance
-
-#### Train Metrics
-
-* RMSE: 0.2355
-* R² Score: 0.9169
-
-#### Test Metrics
-
-* RMSE: 0.2742
-* R² Score: 0.8840
+| Model                   | RMSE   | R² Score | Observation                                           |
+| ----------------------- | ------ | -------- | ----------------------------------------------------- |
+| Linear Regression       | 0.3859 | 0.7704   | Stable baseline performance                           |
+| Ridge Regression        | 0.3859 | 0.7704   | Similar performance to Linear Regression              |
+| Random Forest Regressor | 0.3107 | 0.8511   | Strong predictive performance with slight overfitting |
+| XGBoost Regressor       | 0.2742 | 0.8840   | Best overall performance                              |
+| SARIMA                  | 0.8979 | -0.0147  | Poor forecasting performance                          |
+| SARIMAX                 | 0.3122 | 0.7797   | Significant improvement using external features       |
 
 ---
 
-# 🔍 Key Observations
+## ⏳ Time Series Analysis
 
-### Linear Regression
+### SARIMA
 
-* Showed minimal overfitting
-* Lower predictive capability
-* Indicates the dataset contains complex non-linear relationships
+A SARIMA model was implemented using only historical values of the target variable.
 
-### Random Forest Regressor
+Despite extensive parameter tuning and Auto-ARIMA optimization, the model struggled to capture the complex power consumption patterns present in the dataset.
 
-* Achieved very high training performance
-* Large train-test performance gap
-* Indicates stronger overfitting on this dataset
+Performance:
 
-### XGBoost Regressor
+* RMSE: 0.8979
+* R² Score: -0.0147
 
-* Achieved the best generalization
-* Reduced overfitting compared to Random Forest
-* Performed best overall on unseen data
+The negative R² score indicates that the model performed worse than a simple mean-based prediction.
+
+### SARIMAX
+
+To incorporate additional explanatory information, a SARIMAX model was trained using exogenous variables such as electrical measurements, weather data, and time-based features.
+
+Performance improved substantially:
+
+* RMSE: 0.3122
+* MSE: 0.0974
+* R² Score: 0.7797
+
+These results demonstrate that household power consumption is strongly influenced by external variables and cannot be accurately modeled using past target values alone.
 
 ---
 
-# 🛠️ Technologies Used
+## 🔍 Key Findings
+
+* XGBoost achieved the best predictive performance among all evaluated models.
+* Traditional SARIMA forecasting was unable to model the dataset effectively.
+* SARIMAX significantly improved forecasting accuracy by incorporating exogenous features.
+* Weather conditions, electrical measurements, and temporal information contribute substantial predictive power.
+* Machine learning models outperformed classical statistical forecasting methods for this dataset.
+
+---
+
+## 🛠 Technologies Used
 
 * Python
 * Pandas
 * NumPy
-* Matplotlib
-* Seaborn
-* Scikit-learn
+* Scikit-Learn
 * XGBoost
-* Pickle
+* Statsmodels
+* Pmdarima
+* Matplotlib
 
 ---
 
-# 🚀 Future Improvements
+## 📂 Project Structure
 
-Planned future improvements include:
+EnergyFlow/
+│
+├── Data/
+│   └── cleaned_data.csv
+│
+├── models/
+│   └── (excluded from repository)
+│
+├── Src/
+│   ├── linearRegression_training.py
+│   ├── randomforest_training.py
+│   ├── sarima_training.py
+│   ├── sarimax_training.py
+│   └── xgboost_training.py
+│
+├── README.md
+├── requirements.txt
+└── .gitignore
 
-* Implementing additional ML models
-* Time-series forecasting workflows
-* Chronological train-test splitting
-* Lag feature engineering
-* Advanced hyperparameter optimization
-* Feature importance analysis
-* Pipeline implementation
-* Building a web application for predictions
-* Deployment using Flask or FastAPI
-
----
-
-# 📚 Key Learnings
-
-This project helped in understanding:
-
-* Data preprocessing workflows
-* Feature engineering
-* Exploratory data analysis
-* Regression modeling
-* Feature scaling concepts
-* Hyperparameter tuning
-* Model comparison and benchmarking
-* Overfitting vs underfitting
-* Generalization performance
-* Machine learning project structure
-* Git and GitHub workflow for ML projects
+> Note: Trained model files are excluded from version control and are therefore not included in this repository.
 
 ---
 
-# 📌 Conclusion
+## 🚀 Future Improvements
 
-This project demonstrates a complete end-to-end machine learning workflow for regression-based power consumption prediction.
+* Advanced SARIMAX hyperparameter tuning
+* Prophet-based forecasting
+* LSTM and GRU deep learning models
+* Lag-feature engineering
+* Multi-step forecasting experiments
+* Real-time energy consumption prediction
 
-After comparing multiple regression models, XGBoost emerged as the best-performing model due to its superior generalization capability and balanced performance on unseen data.
+---
 
-The project also provided valuable practical understanding of:
+## 📌 Conclusion
 
-* Overfitting
-* Underfitting
-* Model complexity
-* Hyperparameter tuning
-* Regression model comparison
+This project demonstrates both machine learning and classical time-series approaches for household power consumption prediction.
 
-Further improvements will focus on time-series forecasting techniques and deployment of the trained model as a web application.
+Among all evaluated models, XGBoost delivered the best overall performance with an R² Score of 0.8840 and the lowest prediction error.
+
+While SARIMA struggled to model the complex consumption behavior, SARIMAX showed that incorporating external variables substantially improves forecasting performance. This highlights the importance of feature-rich modeling approaches when predicting household energy consumption.
+
+Based on the evaluation results, XGBoost was selected as the final model due to its superior predictive accuracy and generalization capability.
