@@ -79,6 +79,10 @@ print("MSE :",mse)
 print("RMSE :",rmse)
 print("R2 Score :",r2)
 
-with open("models/Linearmoodel.pkl","wb")as file:
-    pk.dump(model,file)
+
+with open("models/Linearmodel.pkl","wb") as f:
+    pk.dump(model, f)
+
+with open("models/LinearScaler.pkl","wb") as f:
+    pk.dump(scaler, f)
 
